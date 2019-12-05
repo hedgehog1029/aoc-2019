@@ -9,60 +9,29 @@ defmodule AOC do
 		end
 	end
 
-	def draw_line(grid, {x, y}, {:up, distance}, ident) do
-		if distance == 0 do
-			grid
-		else
-			grid |> Map.update({x, y + distance}, ident, &handle_intersect(&1, ident))
-			|> draw_line({x, y}, {:up, distance - 1}, ident)
+	def offset(dir, {x, y}, distance) do
+		case dir do
+			:up -> {x, y + distance}
+			:down -> {x, y - distance}
+			:right -> {x + distance, y}
+			:left -> {x - distance, y}
 		end
 	end
 
-	def draw_line(grid, {x, y}, {:down, distance}, ident) do
+	def draw_line(grid, {x, y}, {dir, distance}, ident) do
 		if distance == 0 do
 			grid
 		else
-			grid |> Map.update({x, y - distance}, ident, &handle_intersect(&1, ident))
-			|> draw_line({x, y}, {:down, distance - 1}, ident)
+			pos = offset(dir, {x, y}, distance)
+			
+			grid |> Map.update(pos, ident, &handle_intersect(&1, ident))
+			|> draw_line({x, y}, {dir, distance - 1}, ident)
 		end
 	end
 
-	def draw_line(grid, {x, y}, {:right, distance}, ident) do
-		if distance == 0 do
-			grid
-		else
-			grid |> Map.update({x + distance, y}, ident, &handle_intersect(&1, ident))
-			|> draw_line({x, y}, {:right, distance - 1}, ident)
-		end
-	end
-	
-	def draw_line(grid, {x, y}, {:left, distance}, ident) do
-		if distance == 0 do
-			grid
-		else
-			grid |> Map.update({x - distance, y}, ident, &handle_intersect(&1, ident))
-			|> draw_line({x, y}, {:left, distance - 1}, ident)
-		end
-	end
-
-	def follow(grid, {x, y}, [{:up, distance} | tail], ident) do
-		grid |> draw_line({x, y}, {:up, distance}, ident)
-		|> follow({x, y + distance}, tail, ident)
-	end
-
-	def follow(grid, {x, y}, [{:down, distance} | tail], ident) do
-		grid |> draw_line({x, y}, {:down, distance}, ident)
-		|> follow({x, y - distance}, tail, ident)
-	end
-
-	def follow(grid, {x, y}, [{:right, distance} | tail], ident) do
-		grid |> draw_line({x, y}, {:right, distance}, ident)
-		|> follow({x + distance, y}, tail, ident)
-	end
-
-	def follow(grid, {x, y}, [{:left, distance} | tail], ident) do
-		grid |> draw_line({x, y}, {:left, distance}, ident)
-		|> follow({x - distance, y}, tail, ident)
+	def follow(grid, coords, [{dir, distance} | tail], ident) do
+		grid |> draw_line(coords, {dir, distance}, ident)
+		|> follow(offset(dir, coords, distance), tail, ident)
 	end
 
 	def follow(grid, _, [], _) do
